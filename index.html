@@ -31,7 +31,7 @@
 
   /* ===== SCREENS ===== */
   .screen { display: none; min-height: 100vh; }
-  .screen.active { display: flex; flex-direction: column; }
+  .screen.active { display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; }
 
   /* ===== HEADER ===== */
   .header {
@@ -39,10 +39,14 @@
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     padding: 16px 20px;
+    display: -webkit-flex;
     display: flex;
+    -webkit-align-items: center;
     align-items: center;
+    -webkit-justify-content: space-between;
     justify-content: space-between;
     border-bottom: 1px solid rgba(0,0,0,0.07);
+    position: -webkit-sticky;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -76,7 +80,9 @@
     cursor: pointer;
     transition: all 0.2s;
     min-height: 40px;
+    display: -webkit-flex;
     display: flex;
+    -webkit-align-items: center;
     align-items: center;
     white-space: nowrap;
   }
@@ -108,7 +114,7 @@
 
   /* ===== LEVEL SELECT SCREEN ===== */
   #screen-select { background: #b2c9c3; }
-  .select-content { flex: 1; padding: 24px 16px; overflow-y: auto; }
+  .select-content { -webkit-flex: 1; flex: 1; padding: 24px 16px; overflow-y: auto; }
   .progress-bar-wrap {
     background: rgba(0,0,0,0.1);
     border-radius: 50px;
@@ -153,9 +159,13 @@
     background: #f4efe6;
     border: 1px solid rgba(0,0,0,0.1);
     border-radius: 10px;
+    display: -webkit-flex;
     display: flex;
+    -webkit-flex-direction: column;
     flex-direction: column;
+    -webkit-align-items: center;
     align-items: center;
+    -webkit-justify-content: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
@@ -214,7 +224,7 @@
 
   /* ===== GAME SCREEN ===== */
   #screen-game { background: #b2c9c3; }
-  .game-content { flex: 1; padding: 12px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
+  .game-content { -webkit-flex: 1; flex: 1; padding: 12px; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: center; align-items: center; overflow-y: auto; }
 
   .level-info {
     text-align: center;
@@ -237,8 +247,11 @@
   }
 
   .game-layout {
+    display: -webkit-flex;
     display: flex;
+    -webkit-flex-direction: column;
     flex-direction: column;
+    -webkit-align-items: center;
     align-items: center;
     width: 100%;
     max-width: 700px;
@@ -264,8 +277,11 @@
   }
   .cell { margin: 1px; -webkit-flex-shrink: 0; flex-shrink: 0; }
   .cell {
+    display: -webkit-flex;
     display: flex;
+    -webkit-align-items: center;
     align-items: center;
+    -webkit-justify-content: center;
     justify-content: center;
     font-weight: 700;
     font-size: 1rem;
@@ -349,11 +365,14 @@
     inset: 0;
     background: rgba(0,0,0,0.7);
     z-index: 200;
+    -webkit-align-items: center;
     align-items: center;
+    -webkit-justify-content: center;
     justify-content: center;
+    -webkit-flex-direction: column;
     flex-direction: column;
   }
-  .celebration-overlay.show { display: flex; }
+  .celebration-overlay.show { display: -webkit-flex; display: flex; }
   .celebration-box {
     background: #f4efe6;
     border: 1px solid rgba(0,0,0,0.1);
@@ -420,9 +439,9 @@
     .cell { font-size: 0.85rem; }
   }
   @media (min-width: 600px) {
-    .game-layout { flex-direction: row; align-items: flex-start; }
-    .word-list-wrap { width: 200px; flex-shrink: 0; }
-    .word-list { flex-direction: column; }
+    .game-layout { -webkit-flex-direction: row; flex-direction: row; -webkit-align-items: flex-start; align-items: flex-start; }
+    .word-list-wrap { width: 200px; -webkit-flex-shrink: 0; flex-shrink: 0; }
+    .word-list { -webkit-flex-direction: column; flex-direction: column; }
   }
 
   /* ===== TIMER & SCORE ===== */
