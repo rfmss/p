@@ -128,10 +128,13 @@
     font-weight: 700;
   }
   .levels-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
     gap: 10px;
   }
+  .level-btn { width: calc(20% - 8px); }
 
   .level-btn {
     aspect-ratio: 1;
@@ -227,14 +230,17 @@
     -webkit-user-select: none;
   }
   .word-grid {
-    display: grid;
-    gap: 2px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
     background: var(--bg2);
     border: 2px solid rgba(255,255,255,0.1);
     border-radius: var(--radius);
     padding: 4px;
     box-shadow: var(--shadow);
   }
+  .cell { margin: 1px; -webkit-flex-shrink: 0; flex-shrink: 0; }
   .cell {
     display: flex;
     align-items: center;
@@ -785,8 +791,8 @@ function toggleMusic() {
 }
 
 function updateMusicButtons() {
-  const btns = document.querySelectorAll('[id^="music-btn"]');
-  btns.forEach(btn => {
+  var btns = document.querySelectorAll('[id^="music-btn"]');
+  Array.prototype.forEach.call(btns, function(btn) {
     if (state.musicOn) {
       btn.className = 'btn music-on';
       btn.innerHTML = '<span class="btn-icon">🎵</span>';
@@ -898,7 +904,7 @@ function buildGrid(size, words, dirKeys) {
 
 // ===================== UI HELPERS =====================
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  Array.prototype.forEach.call(document.querySelectorAll('.screen'), function(s) { s.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
 }
 
@@ -1032,8 +1038,7 @@ function renderGrid() {
   const cellSize = getCellSize(size);
   const fontSize = Math.max(10, Math.min(cellSize * 0.55, 18));
 
-  gridEl.style.gridTemplateColumns = `repeat(${size}, ${cellSize}px)`;
-  gridEl.style.gridTemplateRows = `repeat(${size}, ${cellSize}px)`;
+  gridEl.style.width = ((cellSize + 2) * size) + 'px';
   gridEl.innerHTML = '';
 
   for (let r = 0; r < size; r++) {
@@ -1163,7 +1168,7 @@ function highlightSelection(start, end) {
 }
 
 function clearSelectionHighlight() {
-  document.querySelectorAll('.cell.selecting').forEach(el => el.classList.remove('selecting'));
+  Array.prototype.forEach.call(document.querySelectorAll('.cell.selecting'), function(el) { el.classList.remove('selecting'); });
   state.selectedCells = [];
 }
 
