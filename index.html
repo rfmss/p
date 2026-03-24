@@ -1082,7 +1082,7 @@ function updateTimer() {
   const m = Math.floor(state.elapsedSeconds / 60);
   const s = state.elapsedSeconds % 60;
   const el = document.getElementById('stat-time');
-  if (el) el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  if (el) el.textContent = `${m}:${(s < 10 ? '0' : '') + s}`;
 }
 
 // ===================== GAME RENDER =====================
@@ -1329,7 +1329,7 @@ function showCompletion() {
   document.getElementById('cel-title').textContent = 'Parabéns!';
   document.getElementById('cel-stars').innerHTML = IC.star.repeat(stars);
   document.getElementById('cel-sub').textContent =
-    `Você completou o Nível ${state.currentLevel} em ${m}:${s.toString().padStart(2,'0')}!\n${stars === 3 ? 'Perfeito!' : stars === 2 ? 'Muito bem!' : 'Continue assim!'}`;
+    `Você completou o Nível ${state.currentLevel} em ${m}:${(s < 10 ? '0' : '') + s}!\n${stars === 3 ? 'Perfeito!' : stars === 2 ? 'Muito bem!' : 'Continue assim!'}`;
 
   const nextBtn = document.getElementById('next-level-btn');
   if (hasNext) {
