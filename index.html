@@ -738,7 +738,8 @@ function getAudioCtx() {
   return audioCtx;
 }
 
-function createReverb(ctx, duration = 2.5) {
+function createReverb(ctx, duration) {
+  if (duration === undefined) duration = 2.5;
   const convolver = ctx.createConvolver();
   const rate = ctx.sampleRate;
   const len = rate * duration;
@@ -929,7 +930,8 @@ function buildGrid(size, words, dirKeys) {
   const grid = Array.from({length: size}, () => Array(size).fill(''));
   const placed = [];
 
-  function tryPlace(word, attempts = 200) {
+  function tryPlace(word, attempts) {
+    if (attempts === undefined) attempts = 200;
     for (let a = 0; a < attempts; a++) {
       const dirKey = dirKeys[Math.floor(Math.random() * dirKeys.length)];
       const [dr, dc] = DIRECTIONS[dirKey];
@@ -980,7 +982,9 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
 }
 
-function showToast(msg, type = 'found', duration = 1800) {
+function showToast(msg, type, duration) {
+  if (type === undefined) type = 'found';
+  if (duration === undefined) duration = 1800;
   const t = document.getElementById('toast');
   t.innerHTML = msg;
   t.className = 'toast ' + (type === 'wrong' ? 'wrong' : 'show');
