@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Caça Palavras</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #1a1a2e;
+    --bg2: #16213e;
+    --bg3: #0f3460;
+    --accent: #e94560;
+    --accent2: #f5a623;
+    --text: #eaeaea;
+    --text2: #a0aec0;
+    --card: #1e2d4a;
+    --card-hover: #253858;
+    --found: #2ecc71;
+    --found-bg: rgba(46, 204, 113, 0.25);
+    --select: #f5a623;
+    --select-bg: rgba(245, 166, 35, 0.35);
+    --radius: 12px;
+    --shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ===== HEADER ===== */
+  .header {
+    background: linear-gradient(135deg, var(--bg3), var(--bg2));
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+  }
+  .header-subtitle {
+    font-size: 0.75rem;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+  .header-right { display: flex; gap: 10px; align-items: center; }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .btn:hover, .btn:active { background: var(--card-hover); transform: translateY(-1px); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--accent), #c0392b);
+    border: none;
+  }
+  .btn.success {
+    background: linear-gradient(135deg, var(--found), #27ae60);
+    border: none;
+  }
+  .btn.music-on { background: linear-gradient(135deg, #8e44ad, #6c3483); border: none; }
+  .btn.music-off { background: var(--card); }
+  .btn-icon { font-size: 1.1rem; }
+
+  /* ===== LEVEL SELECT SCREEN ===== */
+  #screen-select { background: var(--bg); }
+  .select-content { flex: 1; padding: 24px 16px; overflow-y: auto; }
+  .progress-bar-wrap {
+    background: var(--card);
+    border-radius: 50px;
+    height: 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 50px;
+    transition: width 0.5s ease;
+  }
+  .progress-text {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text2);
+    margin-bottom: 20px;
+  }
+
+  .group-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text2);
+    margin: 20px 0 10px 4px;
+    font-weight: 700;
+  }
+  .levels-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+
+  .level-btn {
+    aspect-ratio: 1;
+    background: var(--card);
+    border: 2px solid rgba(255,255,255,0.07);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    min-height: 64px;
+  }
+  .level-btn:hover, .level-btn:active {
+    transform: scale(0.95);
+    background: var(--card-hover);
+  }
+  .level-btn.locked {
+    opacity: 0.45;
+    cursor: default;
+    pointer-events: none;
+  }
+  .level-btn.completed {
+    background: linear-gradient(135deg, #1a5c3a, #145a30);
+    border-color: var(--found);
+  }
+  .level-btn.current {
+    background: linear-gradient(135deg, var(--bg3), #1a3a6e);
+    border-color: var(--accent2);
+    box-shadow: 0 0 15px rgba(245,166,35,0.3);
+  }
+  .level-num {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .level-check {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-size: 0.8rem;
+  }
+  .level-stars {
+    font-size: 0.6rem;
+    margin-top: 2px;
+    letter-spacing: 1px;
+  }
+  .level-theme {
+    font-size: 0.55rem;
+    color: var(--text2);
+    margin-top: 2px;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  /* ===== GAME SCREEN ===== */
+  #screen-game { background: var(--bg); }
+  .game-content { flex: 1; padding: 12px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
+
+  .level-info {
+    text-align: center;
+    margin-bottom: 10px;
+    width: 100%;
+  }
+  .level-info .level-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent2);
+  }
+  .level-info .level-desc {
+    font-size: 0.75rem;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+
+  .game-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    max-width: 700px;
+  }
+
+  /* ===== GRID ===== */
+  .grid-wrapper {
+    position: relative;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .word-grid {
+    display: grid;
+    gap: 2px;
+    background: var(--bg2);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: var(--radius);
+    padding: 4px;
+    box-shadow: var(--shadow);
+  }
+  .cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    color: var(--text);
+    background: var(--card);
+    position: relative;
+  }
+  .cell.selecting {
+    background: var(--select-bg);
+    color: var(--select);
+  }
+  .cell.found {
+    background: var(--found-bg);
+    color: var(--found);
+  }
+  .cell.found.selecting {
+    background: linear-gradient(135deg, var(--found-bg), var(--select-bg));
+    color: var(--accent2);
+  }
+
+  /* ===== WORD LIST ===== */
+  .word-list-wrap {
+    width: 100%;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .word-list-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text2);
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+  .word-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .word-chip {
+    background: var(--bg2);
+    border: 1.5px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    transition: all 0.3s;
+    text-transform: uppercase;
+  }
+  .word-chip.found-word {
+    background: var(--found-bg);
+    border-color: var(--found);
+    color: var(--found);
+    text-decoration: line-through;
+    opacity: 0.7;
+  }
+
+  .words-count {
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: var(--text2);
+    text-align: right;
+  }
+
+  /* ===== CELEBRATION ===== */
+  .celebration-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  .celebration-overlay.show { display: flex; }
+  .celebration-box {
+    background: linear-gradient(135deg, var(--bg2), var(--bg3));
+    border: 2px solid var(--accent2);
+    border-radius: 20px;
+    padding: 36px 32px;
+    text-align: center;
+    max-width: 380px;
+    width: 90%;
+    box-shadow: 0 0 50px rgba(245,166,35,0.3);
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  @keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .celebration-emoji { font-size: 4rem; margin-bottom: 12px; display: block; }
+  .celebration-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  .celebration-sub {
+    color: var(--text2);
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  .celebration-stars { font-size: 2rem; margin-bottom: 20px; }
+  .celebration-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* ===== CONFETTI ===== */
+  .confetti-piece {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 300;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* ===== HIGHLIGHT OVERLAY ===== */
+  .found-line {
+    position: absolute;
+    background: linear-gradient(90deg, rgba(46,204,113,0.4), rgba(46,204,113,0.2));
+    border-radius: 50px;
+    pointer-events: none;
+    z-index: 10;
+    transition: all 0.3s;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 480px) {
+    .levels-grid { grid-template-columns: repeat(5, 1fr); gap: 7px; }
+    .level-btn { min-height: 54px; }
+    .level-num { font-size: 1rem; }
+    .cell { font-size: 0.85rem; }
+  }
+  @media (min-width: 600px) {
+    .game-layout { flex-direction: row; align-items: flex-start; }
+    .word-list-wrap { width: 200px; flex-shrink: 0; }
+    .word-list { flex-direction: column; }
+  }
+
+  /* ===== TIMER & SCORE ===== */
+  .game-stats {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .stat-chip {
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 0.8rem;
+    color: var(--text2);
+    font-weight: 600;
+  }
+  .stat-chip span { color: var(--text); }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--found);
+    color: #fff;
+    font-weight: 700;
+    padding: 10px 24px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    z-index: 500;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.wrong { background: var(--accent); }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- LEVEL SELECT SCREEN -->
+<div id="screen-select" class="screen active">
+  <div class="header">
+    <div>
+      <h1>🔤 Caça Palavras</h1>
+      <div class="header-subtitle">40 níveis de diversão</div>
+    </div>
+    <div class="header-right">
+      <button class="btn music-on" id="music-btn-select" onclick="toggleMusic()">
+        <span class="btn-icon">🎵</span>
+      </button>
+    </div>
+  </div>
+  <div class="select-content">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-text" id="progress-text">0 de 40 níveis completos</div>
+    <div id="levels-container"></div>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="screen-game" class="screen">
+  <div class="header">
+    <div>
+      <button class="btn" onclick="goToSelect()">← Níveis</button>
+    </div>
+    <div id="game-header-title" style="font-weight:700; font-size:1rem;"></div>
+    <div class="header-right">
+      <button class="btn music-on" id="music-btn-game" onclick="toggleMusic()">
+        <span class="btn-icon">🎵</span>
+      </button>
+    </div>
+  </div>
+  <div class="game-content">
+    <div class="level-info">
+      <div class="level-title" id="level-title"></div>
+      <div class="level-desc" id="level-desc"></div>
+    </div>
+    <div class="game-stats">
+      <div class="stat-chip">Encontradas: <span id="stat-found">0</span>/<span id="stat-total">0</span></div>
+      <div class="stat-chip">Tempo: <span id="stat-time">0:00</span></div>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="grid-wrapper" id="grid-wrapper">
+          <div class="word-grid" id="word-grid"></div>
+        </div>
+      </div>
+      <div class="word-list-wrap">
+        <div class="word-list-title">Palavras para encontrar</div>
+        <div class="word-list" id="word-list"></div>
+        <div class="words-count" id="words-count"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CELEBRATION OVERLAY -->
+<div class="celebration-overlay" id="celebration">
+  <div class="celebration-box">
+    <span class="celebration-emoji" id="cel-emoji">🎉</span>
+    <div class="celebration-title" id="cel-title">Parabéns!</div>
+    <div class="celebration-stars" id="cel-stars">⭐⭐⭐</div>
+    <div class="celebration-sub" id="cel-sub">Você encontrou todas as palavras!</div>
+    <div class="celebration-btns">
+      <button class="btn" onclick="goToSelect()">📋 Níveis</button>
+      <button class="btn success" id="next-level-btn" onclick="goToNextLevel()">Próximo ➡</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+// ===================== LEVEL DATA =====================
+const LEVEL_GROUPS = [
+  { name: 'Animais', theme: '🐾', emoji: '🐱', levels: [1,2,3,4,5] },
+  { name: 'Frutas', theme: '🍎', emoji: '🍓', levels: [6,7,8,9,10] },
+  { name: 'Cores', theme: '🎨', emoji: '🌈', levels: [11,12,13,14,15] },
+  { name: 'Corpo', theme: '🫀', emoji: '💪', levels: [16,17,18,19,20] },
+  { name: 'Natureza', theme: '🌿', emoji: '🌊', levels: [21,22,23,24,25] },
+  { name: 'Profissões', theme: '👔', emoji: '👩‍⚕️', levels: [26,27,28,29,30] },
+  { name: 'Esportes', theme: '⚽', emoji: '🏆', levels: [31,32,33,34,35] },
+  { name: 'Geografia', theme: '🗺️', emoji: '🌎', levels: [36,37,38,39,40] },
+];
+
+const WORD_POOLS = {
+  1: ['GATO','CAO','PATO','RATO','BOI'],
+  2: ['GATO','RATO','BOI','URSO','BODE'],
+  3: ['PATO','BODE','LOBA','LOBO','GALO'],
+  4: ['GALO','PATO','RATO','LEAO','GATO'],
+  5: ['LEAO','URSO','RATO','GATO','COBRA','PEIXE'],
+  6: ['MACA','UVA','PERA','FIGO','CAJU','LIMA'],
+  7: ['CAJU','MANGA','PERA','FIGO','ABIU','UVA'],
+  8: ['MANGA','LIMAO','CAJU','PERA','FIGO','MACA'],
+  9: ['BANANA','LIMAO','MANGA','CAJU','ABACAXI'],
+  10: ['LARANJA','BANANA','MANGA','LIMAO','ABACAXI','MARACUJA'],
+  11: ['AZUL','VERDE','ROXO','ROSA','PRATA','BEGE','OURO'],
+  12: ['VERDE','ROXO','ROSA','CIANO','BEGE','AZUL','OURO'],
+  13: ['DOURADO','AMARELO','MARROM','ROXO','VERDE','AZUL'],
+  14: ['LARANJA','MARROM','CINZA','VERDE','ROXO','PRATA'],
+  15: ['VERMELHO','AMARELO','LARANJA','DOURADO','MARROM','CINZA','ROXO'],
+  16: ['BOCA','NARIZ','OLHO','DENTE','MAO','ORELHA','COTOVELO'],
+  17: ['CABELO','BOCA','NARIZ','JOELHO','OMBRO','DENTE','ORELHA'],
+  18: ['JOELHO','COTOVELO','OMBRO','TORNOZELO','BOCA','NARIZ'],
+  19: ['TORNOZELO','COTOVELO','CABELO','JOELHO','OMBRO','SOBRANCELHA'],
+  20: ['SOBRANCELHA','TORNOZELO','COTOVELO','JOELHO','OMBRO','CABELO','NARIZ'],
+  21: ['RIO','MAR','LAGO','SELVA','VALE','MORRO'],
+  22: ['SELVA','DESERTO','LAGO','MAR','RIO','VALE','MORRO'],
+  23: ['FLORESTA','DESERTO','SELVA','MONTANHA','LAGO','RIO'],
+  24: ['MONTANHA','FLORESTA','CACHOEIRA','DESERTO','SELVA','LAGO'],
+  25: ['CACHOEIRA','VULCAO','PENINSULA','MONTANHA','FLORESTA','DESERTO','SELVA'],
+  26: ['MEDICO','PILOTO','MUSICO','ARTISTA','PINTOR'],
+  27: ['MEDICO','PILOTO','MUSICO','ARTISTA','FISICO','JUIZ'],
+  28: ['ENGENHEIRO','ARQUITETO','MEDICO','PILOTO','MUSICO','ARTISTA'],
+  29: ['ENFERMEIRO','PROFESSOR','ESCRITOR','ENGENHEIRO','ARQUITETO','MEDICO'],
+  30: ['ADVOGADO','PROFESSOR','ESCRITOR','ENFERMEIRO','ENGENHEIRO','ARQUITETO','MEDICO'],
+  31: ['GOLF','POLO','REMO','BOXE','LUTA'],
+  32: ['BOXE','REMO','POLO','NATACAO','GOLF','LUTA'],
+  33: ['VOLEIBOL','BASQUETE','BOXE','NATACAO','REMO','GOLF'],
+  34: ['ATLETISMO','HANDEBOL','VOLEIBOL','BASQUETE','NATACAO','BOXE'],
+  35: ['AUTOMOBILISMO','ATLETISMO','HANDEBOL','VOLEIBOL','BASQUETE','NATACAO'],
+  36: ['RECIFE','MANAUS','NATAL','BELEM','MACEIO'],
+  37: ['BRASILIA','RECIFE','MANAUS','NATAL','BELEM','FORTALEZA'],
+  38: ['SALVADOR','FORTALEZA','BRASILIA','RECIFE','MANAUS','NATAL'],
+  39: ['FLORIANOPOLIS','SALVADOR','FORTALEZA','BRASILIA','RECIFE','MANAUS'],
+  40: ['PORTOALEGRE','BELOHORIZONTE','FLORIANOPOLIS','SALVADOR','FORTALEZA','BRASILIA','RECIFE'],
+};
+
+const LEVEL_CONFIG = [
+  null, // 0 index placeholder
+  // 1-5: 8x8, 5-6 words, H/V only
+  { size:8, words:5, dirs:['H','V'] }, { size:8, words:5, dirs:['H','V'] },
+  { size:8, words:5, dirs:['H','V'] }, { size:8, words:5, dirs:['H','V'] },
+  { size:8, words:6, dirs:['H','V'] },
+  // 6-10: 10x10, 6-7 words, H/V only
+  { size:10, words:6, dirs:['H','V'] }, { size:10, words:6, dirs:['H','V'] },
+  { size:10, words:7, dirs:['H','V'] }, { size:10, words:7, dirs:['H','V'] },
+  { size:10, words:7, dirs:['H','V'] },
+  // 11-15: 10x10, 7-8 words, +diagonal
+  { size:10, words:7, dirs:['H','V','D'] }, { size:10, words:7, dirs:['H','V','D'] },
+  { size:10, words:8, dirs:['H','V','D'] }, { size:10, words:8, dirs:['H','V','D'] },
+  { size:10, words:8, dirs:['H','V','D'] },
+  // 16-20: 12x12, 8-9 words, +reverse
+  { size:12, words:8, dirs:['H','V','D','HR','VR','DR'] },
+  { size:12, words:8, dirs:['H','V','D','HR','VR','DR'] },
+  { size:12, words:9, dirs:['H','V','D','HR','VR','DR'] },
+  { size:12, words:9, dirs:['H','V','D','HR','VR','DR'] },
+  { size:12, words:9, dirs:['H','V','D','HR','VR','DR'] },
+  // 21-25: 14x14, 9-10 words, all
+  { size:14, words:9, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  { size:14, words:9, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  { size:14, words:10, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  { size:14, words:10, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  { size:14, words:10, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  // 26-30: 15x15, 10-11 words, all
+  { size:15, words:10, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  { size:15, words:10, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  { size:15, words:11, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  { size:15, words:11, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  { size:15, words:11, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  // 31-35: 16x16, 11-12 words, all
+  { size:16, words:11, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  { size:16, words:11, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  { size:16, words:12, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  { size:16, words:12, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  { size:16, words:12, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  // 36-40: 18x18, 12-15 words, all
+  { size:18, words:12, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  { size:18, words:13, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  { size:18, words:13, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  { size:18, words:14, dirs:['H','V','D','DR2','HR','VR','DR'] },
+  { size:18, words:15, dirs:['H','V','D','DR2','HR','VR','DR'] },
+];
+
+const GROUP_THEMES = {
+  1:'Animais', 2:'Animais', 3:'Animais', 4:'Animais', 5:'Animais',
+  6:'Frutas', 7:'Frutas', 8:'Frutas', 9:'Frutas', 10:'Frutas',
+  11:'Cores', 12:'Cores', 13:'Cores', 14:'Cores', 15:'Cores',
+  16:'Corpo', 17:'Corpo', 18:'Corpo', 19:'Corpo', 20:'Corpo',
+  21:'Natureza', 22:'Natureza', 23:'Natureza', 24:'Natureza', 25:'Natureza',
+  26:'Profissões', 27:'Profissões', 28:'Profissões', 29:'Profissões', 30:'Profissões',
+  31:'Esportes', 32:'Esportes', 33:'Esportes', 34:'Esportes', 35:'Esportes',
+  36:'Geografia', 37:'Geografia', 38:'Geografia', 39:'Geografia', 40:'Geografia',
+};
+
+// ===================== STATE =====================
+let state = {
+  progress: JSON.parse(localStorage.getItem('cacapalavras_progress') || '{}'),
+  musicOn: localStorage.getItem('cacapalavras_music') !== 'off',
+  currentLevel: null,
+  grid: [],
+  words: [],
+  placedWords: [],
+  foundWords: [],
+  selecting: false,
+  startCell: null,
+  endCell: null,
+  timerStart: null,
+  timerInterval: null,
+  elapsedSeconds: 0,
+};
+
+// ===================== AUDIO ENGINE =====================
+let audioCtx = null;
+let musicNodes = [];
+let musicPlaying = false;
+
+function getAudioCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function createReverb(ctx, duration = 2.5) {
+  const convolver = ctx.createConvolver();
+  const rate = ctx.sampleRate;
+  const len = rate * duration;
+  const impulse = ctx.createBuffer(2, len, rate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = impulse.getChannelData(ch);
+    for (let i = 0; i < len; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.5);
+    }
+  }
+  convolver.buffer = impulse;
+  return convolver;
+}
+
+function startMusic() {
+  if (musicPlaying) return;
+  const ctx = getAudioCtx();
+  musicPlaying = true;
+
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0.0, ctx.currentTime);
+  master.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 2);
+  master.connect(ctx.destination);
+
+  const reverb = createReverb(ctx, 3);
+  reverb.connect(master);
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(900, ctx.currentTime);
+  filter.Q.setValueAtTime(0.7, ctx.currentTime);
+  filter.connect(reverb);
+  filter.connect(master);
+
+  // Chord notes (C major pentatonic)
+  const baseNotes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33];
+
+  function playAmbient() {
+    if (!musicPlaying) return;
+    const now = ctx.currentTime;
+
+    // Pad chord
+    [0, 2, 4].forEach((ni, i) => {
+      const freq = baseNotes[ni % baseNotes.length];
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = i === 0 ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(freq + (i * 0.15), now);
+      osc.frequency.linearRampToValueAtTime(freq + (i * 0.15) + (Math.random() * 0.5), now + 8);
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.12 / (i + 1), now + 1.5);
+      g.gain.linearRampToValueAtTime(0.10 / (i + 1), now + 6);
+      g.gain.linearRampToValueAtTime(0, now + 9);
+      osc.connect(g);
+      g.connect(filter);
+      osc.start(now);
+      osc.stop(now + 9);
+      musicNodes.push(osc, g);
+    });
+
+    // Subtle melody note
+    const melNote = baseNotes[Math.floor(Math.random() * baseNotes.length)];
+    const melOsc = ctx.createOscillator();
+    const melG = ctx.createGain();
+    melOsc.type = 'sine';
+    melOsc.frequency.setValueAtTime(melNote * 2, now + 1);
+    melG.gain.setValueAtTime(0, now + 1);
+    melG.gain.linearRampToValueAtTime(0.06, now + 2);
+    melG.gain.linearRampToValueAtTime(0, now + 5);
+    melOsc.connect(melG);
+    melG.connect(reverb);
+    melOsc.start(now + 1);
+    melOsc.stop(now + 6);
+    musicNodes.push(melOsc, melG);
+
+    // Low bass pulse
+    const bassOsc = ctx.createOscillator();
+    const bassG = ctx.createGain();
+    bassOsc.type = 'sine';
+    bassOsc.frequency.setValueAtTime(baseNotes[0] / 2, now);
+    bassG.gain.setValueAtTime(0, now);
+    bassG.gain.linearRampToValueAtTime(0.15, now + 0.5);
+    bassG.gain.linearRampToValueAtTime(0.08, now + 4);
+    bassG.gain.linearRampToValueAtTime(0, now + 8);
+    bassOsc.connect(bassG);
+    bassG.connect(master);
+    bassOsc.start(now);
+    bassOsc.stop(now + 9);
+    musicNodes.push(bassOsc, bassG);
+
+    setTimeout(() => { if (musicPlaying) playAmbient(); }, 8500);
+  }
+
+  playAmbient();
+  musicNodes.push(master, reverb, filter);
+}
+
+function stopMusic() {
+  musicPlaying = false;
+  const ctx = audioCtx;
+  if (ctx) {
+    const now = ctx.currentTime;
+    musicNodes.forEach(n => {
+      try {
+        if (n.gain) n.gain.linearRampToValueAtTime(0, now + 0.5);
+        if (n.stop) n.stop(now + 0.6);
+      } catch(e) {}
+    });
+  }
+  musicNodes = [];
+}
+
+function toggleMusic() {
+  state.musicOn = !state.musicOn;
+  localStorage.setItem('cacapalavras_music', state.musicOn ? 'on' : 'off');
+  updateMusicButtons();
+  if (state.musicOn) {
+    startMusic();
+  } else {
+    stopMusic();
+  }
+}
+
+function updateMusicButtons() {
+  const btns = document.querySelectorAll('[id^="music-btn"]');
+  btns.forEach(btn => {
+    if (state.musicOn) {
+      btn.className = 'btn music-on';
+      btn.innerHTML = '<span class="btn-icon">🎵</span>';
+    } else {
+      btn.className = 'btn music-off';
+      btn.innerHTML = '<span class="btn-icon">🔇</span>';
+    }
+  });
+}
+
+function playSFX(type) {
+  const ctx = getAudioCtx();
+  const now = ctx.currentTime;
+  if (type === 'found') {
+    [523.25, 659.25, 783.99].forEach((f, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(f, now + i * 0.08);
+      g.gain.setValueAtTime(0.3, now + i * 0.08);
+      g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.3);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(now + i * 0.08); o.stop(now + i * 0.08 + 0.3);
+    });
+  } else if (type === 'complete') {
+    [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(f, now + i * 0.12);
+      g.gain.setValueAtTime(0.4, now + i * 0.12);
+      g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.5);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(now + i * 0.12); o.stop(now + i * 0.12 + 0.6);
+    });
+  } else if (type === 'wrong') {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(200, now);
+    o.frequency.linearRampToValueAtTime(150, now + 0.2);
+    g.gain.setValueAtTime(0.2, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(now); o.stop(now + 0.3);
+  }
+}
+
+// ===================== WORD SEARCH ENGINE =====================
+const DIRECTIONS = {
+  'H':   [0, 1],
+  'V':   [1, 0],
+  'D':   [1, 1],
+  'DR2': [1, -1],
+  'HR':  [0, -1],
+  'VR':  [-1, 0],
+  'DR':  [-1, -1],
+  'DR3': [-1, 1],
+};
+
+function buildGrid(size, words, dirKeys) {
+  const grid = Array.from({length: size}, () => Array(size).fill(''));
+  const placed = [];
+
+  function tryPlace(word, attempts = 200) {
+    for (let a = 0; a < attempts; a++) {
+      const dirKey = dirKeys[Math.floor(Math.random() * dirKeys.length)];
+      const [dr, dc] = DIRECTIONS[dirKey];
+      const maxRow = dr >= 0 ? size - word.length * Math.abs(dr) : size - 1;
+      const maxCol = dc >= 0 ? size - word.length * Math.abs(dc) : size - 1;
+      const startRow = dr < 0 ? Math.abs(dr) * (word.length - 1) + Math.floor(Math.random() * (size - Math.abs(dr) * (word.length - 1))) : Math.floor(Math.random() * (maxRow + 1));
+      const startCol = dc < 0 ? Math.abs(dc) * (word.length - 1) + Math.floor(Math.random() * (size - Math.abs(dc) * (word.length - 1))) : Math.floor(Math.random() * (maxCol + 1));
+
+      if (startRow < 0 || startRow >= size || startCol < 0 || startCol >= size) continue;
+
+      let fits = true;
+      const cells = [];
+      for (let i = 0; i < word.length; i++) {
+        const r = startRow + dr * i;
+        const c = startCol + dc * i;
+        if (r < 0 || r >= size || c < 0 || c >= size) { fits = false; break; }
+        if (grid[r][c] !== '' && grid[r][c] !== word[i]) { fits = false; break; }
+        cells.push([r, c]);
+      }
+      if (fits) {
+        cells.forEach(([r, c], i) => { grid[r][c] = word[i]; });
+        placed.push({ word, cells, found: false });
+        return true;
+      }
+    }
+    return false;
+  }
+
+  const failed = [];
+  words.forEach(w => { if (!tryPlace(w)) failed.push(w); });
+
+  // Fill empty cells with random letters
+  const letters = 'ABCDEFGHIJKLMNOPRSTUVZ';
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (!grid[r][c]) {
+        grid[r][c] = letters[Math.floor(Math.random() * letters.length)];
+      }
+    }
+  }
+
+  return { grid, placed, failed };
+}
+
+// ===================== UI HELPERS =====================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showToast(msg, type = 'found', duration = 1800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (type === 'wrong' ? 'wrong' : 'show');
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ===================== LEVEL SELECT =====================
+function renderLevelSelect() {
+  const container = document.getElementById('levels-container');
+  container.innerHTML = '';
+
+  const completed = Object.values(state.progress).filter(v => v && v.completed).length;
+  document.getElementById('progress-fill').style.width = (completed / 40 * 100) + '%';
+  document.getElementById('progress-text').textContent = `${completed} de 40 níveis completos`;
+
+  LEVEL_GROUPS.forEach(group => {
+    const label = document.createElement('div');
+    label.className = 'group-label';
+    label.textContent = `${group.emoji} ${group.name}`;
+    container.appendChild(label);
+
+    const grid = document.createElement('div');
+    grid.className = 'levels-grid';
+
+    group.levels.forEach(lvl => {
+      const prog = state.progress[lvl] || {};
+      const isCompleted = prog.completed;
+      const isUnlocked = lvl === 1 || (state.progress[lvl - 1] && state.progress[lvl - 1].completed);
+      const isCurrent = !isCompleted && isUnlocked;
+
+      const btn = document.createElement('div');
+      btn.className = 'level-btn' + (isCompleted ? ' completed' : isCurrent ? ' current' : !isUnlocked ? ' locked' : '');
+
+      const stars = isCompleted ? (prog.stars || 3) : 0;
+      btn.innerHTML = `
+        ${isCompleted ? '<span class="level-check">✅</span>' : ''}
+        <span class="level-num">${lvl}</span>
+        ${isCompleted ? `<span class="level-stars">${'⭐'.repeat(stars)}</span>` : ''}
+        <span class="level-theme">${GROUP_THEMES[lvl]}</span>
+      `;
+
+      if (!isUnlocked) {
+        btn.title = 'Complete o nível anterior primeiro';
+      } else {
+        btn.addEventListener('click', () => startLevel(lvl));
+        btn.addEventListener('touchend', (e) => { e.preventDefault(); startLevel(lvl); });
+      }
+
+      grid.appendChild(btn);
+    });
+
+    container.appendChild(grid);
+  });
+}
+
+// ===================== LEVEL START =====================
+function startLevel(lvl) {
+  state.currentLevel = lvl;
+  const cfg = LEVEL_CONFIG[lvl];
+  const pool = WORD_POOLS[lvl] || ['PALAVRA', 'JOGO', 'TEXTO'];
+
+  // Pick words from pool
+  const wordCount = Math.min(cfg.words, pool.length);
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  const words = shuffled.slice(0, wordCount);
+
+  // Build the grid
+  const { grid, placed, failed } = buildGrid(cfg.size, words, cfg.dirs);
+
+  state.grid = grid;
+  state.size = cfg.size;
+  state.placedWords = placed;
+  state.words = placed.map(p => p.word);
+  state.foundWords = [];
+  state.selecting = false;
+  state.startCell = null;
+  state.endCell = null;
+  state.selectedCells = [];
+  state.timerStart = Date.now();
+  state.elapsedSeconds = 0;
+
+  if (state.timerInterval) clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(updateTimer, 1000);
+
+  renderGame();
+  showScreen('screen-game');
+
+  if (state.musicOn && !musicPlaying) startMusic();
+}
+
+function updateTimer() {
+  state.elapsedSeconds = Math.floor((Date.now() - state.timerStart) / 1000);
+  const m = Math.floor(state.elapsedSeconds / 60);
+  const s = state.elapsedSeconds % 60;
+  const el = document.getElementById('stat-time');
+  if (el) el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+}
+
+// ===================== GAME RENDER =====================
+function renderGame() {
+  const lvl = state.currentLevel;
+  const cfg = LEVEL_CONFIG[lvl];
+
+  document.getElementById('game-header-title').textContent = `Nível ${lvl} — ${GROUP_THEMES[lvl]}`;
+  document.getElementById('level-title').textContent = `Nível ${lvl}: ${GROUP_THEMES[lvl]}`;
+  document.getElementById('level-desc').textContent = `Grade ${cfg.size}×${cfg.size} • ${state.words.length} palavras`;
+  document.getElementById('stat-found').textContent = '0';
+  document.getElementById('stat-total').textContent = state.words.length;
+
+  renderGrid();
+  renderWordList();
+}
+
+function getCellSize(gridSize) {
+  const maxWidth = Math.min(window.innerWidth, 600) - 40;
+  const maxHeight = window.innerHeight * 0.55;
+  const byWidth = Math.floor((maxWidth - 8) / gridSize) - 2;
+  const byHeight = Math.floor((maxHeight - 8) / gridSize) - 2;
+  return Math.max(24, Math.min(byWidth, byHeight, 42));
+}
+
+function renderGrid() {
+  const gridEl = document.getElementById('word-grid');
+  const size = state.size;
+  const cellSize = getCellSize(size);
+  const fontSize = Math.max(10, Math.min(cellSize * 0.55, 18));
+
+  gridEl.style.gridTemplateColumns = `repeat(${size}, ${cellSize}px)`;
+  gridEl.style.gridTemplateRows = `repeat(${size}, ${cellSize}px)`;
+  gridEl.innerHTML = '';
+
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.textContent = state.grid[r][c];
+      cell.style.width = cellSize + 'px';
+      cell.style.height = cellSize + 'px';
+      cell.style.fontSize = fontSize + 'px';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      gridEl.appendChild(cell);
+    }
+  }
+
+  setupGridInteraction();
+  updateFoundDisplay();
+}
+
+function renderWordList() {
+  const listEl = document.getElementById('word-list');
+  listEl.innerHTML = '';
+  state.placedWords.forEach(pw => {
+    const chip = document.createElement('div');
+    chip.className = 'word-chip' + (pw.found ? ' found-word' : '');
+    chip.textContent = pw.word;
+    chip.id = 'chip-' + pw.word;
+    listEl.appendChild(chip);
+  });
+  updateWordCount();
+}
+
+function updateWordCount() {
+  const found = state.foundWords.length;
+  const total = state.words.length;
+  document.getElementById('words-count').textContent = `${found}/${total} encontradas`;
+  document.getElementById('stat-found').textContent = found;
+}
+
+// ===================== GRID INTERACTION =====================
+function setupGridInteraction() {
+  const gridEl = document.getElementById('word-grid');
+
+  function getCell(el) {
+    let t = el;
+    while (t && !t.dataset.r) t = t.parentElement;
+    if (!t) return null;
+    return { r: parseInt(t.dataset.r), c: parseInt(t.dataset.c), el: t };
+  }
+
+  function onStart(e) {
+    e.preventDefault();
+    const src = e.touches ? e.touches[0].target : e.target;
+    const cell = getCell(src);
+    if (!cell) return;
+    state.selecting = true;
+    state.startCell = cell;
+    state.endCell = cell;
+    highlightSelection(cell, cell);
+  }
+
+  function onMove(e) {
+    if (!state.selecting) return;
+    e.preventDefault();
+    const src = e.touches
+      ? document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY)
+      : e.target;
+    const cell = getCell(src);
+    if (!cell) return;
+    state.endCell = cell;
+    highlightSelection(state.startCell, cell);
+  }
+
+  function onEnd(e) {
+    if (!state.selecting) return;
+    e.preventDefault();
+    state.selecting = false;
+    checkSelection(state.startCell, state.endCell);
+    clearSelectionHighlight();
+  }
+
+  gridEl.addEventListener('mousedown', onStart);
+  gridEl.addEventListener('mousemove', onMove);
+  gridEl.addEventListener('mouseup', onEnd);
+  gridEl.addEventListener('touchstart', onStart, { passive: false });
+  gridEl.addEventListener('touchmove', onMove, { passive: false });
+  gridEl.addEventListener('touchend', onEnd, { passive: false });
+}
+
+function getCellsInLine(start, end) {
+  const dr = end.r - start.r;
+  const dc = end.c - start.c;
+  const len = Math.max(Math.abs(dr), Math.abs(dc));
+  if (len === 0) return [start];
+
+  // Only valid directions
+  const absDr = Math.abs(dr);
+  const absDc = Math.abs(dc);
+  if (absDr !== 0 && absDc !== 0 && absDr !== absDc) {
+    // Not a valid diagonal — snap to closest axis
+    if (absDr > absDc) {
+      end = { r: end.r, c: start.c, el: null };
+    } else {
+      end = { r: start.r, c: end.c, el: null };
+    }
+    return getCellsInLine(start, end);
+  }
+
+  const stepR = dr === 0 ? 0 : dr / Math.abs(dr);
+  const stepC = dc === 0 ? 0 : dc / Math.abs(dc);
+  const cells = [];
+  for (let i = 0; i <= len; i++) {
+    cells.push({ r: start.r + stepR * i, c: start.c + stepC * i });
+  }
+  return cells;
+}
+
+function highlightSelection(start, end) {
+  clearSelectionHighlight();
+  const cells = getCellsInLine(start, end);
+  cells.forEach(({r, c}) => {
+    const el = getCellEl(r, c);
+    if (el) el.classList.add('selecting');
+  });
+  state.selectedCells = cells;
+}
+
+function clearSelectionHighlight() {
+  document.querySelectorAll('.cell.selecting').forEach(el => el.classList.remove('selecting'));
+  state.selectedCells = [];
+}
+
+function getCellEl(r, c) {
+  return document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+}
+
+function checkSelection(start, end) {
+  if (!start || !end) return;
+  const cells = getCellsInLine(start, end);
+  const word = cells.map(({r, c}) => state.grid[r][c]).join('');
+
+  const match = state.placedWords.find(pw => !pw.found && (
+    pw.word === word ||
+    pw.word === word.split('').reverse().join('') // allow reverse selection
+  ));
+
+  if (match) {
+    match.found = true;
+    state.foundWords.push(match.word);
+
+    // Highlight found cells
+    match.cells.forEach(([r, c]) => {
+      const el = getCellEl(r, c);
+      if (el) el.classList.add('found');
+    });
+
+    const chip = document.getElementById('chip-' + match.word);
+    if (chip) chip.className = 'word-chip found-word';
+
+    updateWordCount();
+    playSFX('found');
+    showToast('✅ ' + match.word + ' encontrada!');
+
+    if (state.foundWords.length === state.placedWords.length) {
+      setTimeout(showCompletion, 700);
+    }
+  } else {
+    // Check if it's at least 2 cells
+    if (cells.length >= 2) {
+      playSFX('wrong');
+    }
+  }
+}
+
+function updateFoundDisplay() {
+  state.placedWords.forEach(pw => {
+    if (pw.found) {
+      pw.cells.forEach(([r, c]) => {
+        const el = getCellEl(r, c);
+        if (el) el.classList.add('found');
+      });
+    }
+  });
+}
+
+// ===================== COMPLETION =====================
+function showCompletion() {
+  clearInterval(state.timerInterval);
+  const secs = state.elapsedSeconds;
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+
+  // Calculate stars
+  const cfg = LEVEL_CONFIG[state.currentLevel];
+  const maxTime = cfg.size * cfg.words * 8;
+  const stars = secs < maxTime * 0.4 ? 3 : secs < maxTime * 0.7 ? 2 : 1;
+
+  // Save progress
+  state.progress[state.currentLevel] = {
+    completed: true,
+    stars,
+    time: secs,
+  };
+  localStorage.setItem('cacapalavras_progress', JSON.stringify(state.progress));
+
+  // Show overlay
+  const nextLvl = state.currentLevel + 1;
+  const hasNext = nextLvl <= 40;
+
+  document.getElementById('cel-emoji').textContent = ['🎉','🏆','🌟','🎊'][Math.floor(Math.random()*4)];
+  document.getElementById('cel-title').textContent = 'Parabéns!';
+  document.getElementById('cel-stars').textContent = '⭐'.repeat(stars);
+  document.getElementById('cel-sub').textContent =
+    `Você completou o Nível ${state.currentLevel} em ${m}:${s.toString().padStart(2,'0')}!\n${stars === 3 ? 'Perfeito! 🌟' : stars === 2 ? 'Muito bem! 👏' : 'Continue assim! 💪'}`;
+
+  const nextBtn = document.getElementById('next-level-btn');
+  if (hasNext) {
+    nextBtn.style.display = '';
+    nextBtn.textContent = `Próximo (${nextLvl}) ➡`;
+  } else {
+    nextBtn.style.display = 'none';
+  }
+
+  document.getElementById('celebration').classList.add('show');
+  playSFX('complete');
+  launchConfetti();
+}
+
+function goToNextLevel() {
+  document.getElementById('celebration').classList.remove('show');
+  const next = state.currentLevel + 1;
+  if (next <= 40) {
+    startLevel(next);
+  } else {
+    goToSelect();
+  }
+}
+
+function goToSelect() {
+  document.getElementById('celebration').classList.remove('show');
+  if (state.timerInterval) clearInterval(state.timerInterval);
+  renderLevelSelect();
+  showScreen('screen-select');
+  updateMusicButtons();
+}
+
+// ===================== CONFETTI =====================
+function launchConfetti() {
+  const colors = ['#e94560','#f5a623','#2ecc71','#3498db','#9b59b6','#1abc9c'];
+  for (let i = 0; i < 60; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.cssText = `
+        left: ${Math.random() * 100}vw;
+        top: -20px;
+        background: ${colors[Math.floor(Math.random()*colors.length)]};
+        width: ${6 + Math.random()*8}px;
+        height: ${6 + Math.random()*8}px;
+        border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+        animation-duration: ${2 + Math.random()*3}s;
+        animation-delay: 0s;
+      `;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 5000);
+    }, i * 40);
+  }
+}
+
+// ===================== INIT =====================
+function init() {
+  updateMusicButtons();
+  renderLevelSelect();
+
+  if (state.musicOn) {
+    // Start music on first interaction
+    const startOnInteract = () => {
+      startMusic();
+      document.removeEventListener('touchstart', startOnInteract);
+      document.removeEventListener('mousedown', startOnInteract);
+    };
+    document.addEventListener('touchstart', startOnInteract, { once: true });
+    document.addEventListener('mousedown', startOnInteract, { once: true });
+  }
+}
+
+init();
+</script>
+</body>
+</html>
