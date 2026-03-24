@@ -62,7 +62,7 @@
     color: #555;
     margin-top: 2px;
   }
-  .header-right { display: flex; gap: 10px; align-items: center; }
+  .header-right { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; }
 
   /* ===== BUTTONS ===== */
   .btn {
@@ -78,9 +78,9 @@
     min-height: 40px;
     display: flex;
     align-items: center;
-    gap: 6px;
     white-space: nowrap;
   }
+  .btn > * + * { margin-left: 6px; }
   .btn:hover, .btn:active { background: rgba(244, 239, 230, 0.7); }
   .btn.primary {
     background: var(--accent);
@@ -143,12 +143,13 @@
     display: flex;
     -webkit-flex-wrap: wrap;
     flex-wrap: wrap;
-    gap: 10px;
+    margin: -5px;
   }
-  .level-btn { width: calc(20% - 8px); }
+  .level-btn { margin: 5px; }
+  .level-btn { width: calc(20% - 10px); }
 
   .level-btn {
-    aspect-ratio: 1;
+    padding-bottom: 0;
     background: #f4efe6;
     border: 1px solid rgba(0,0,0,0.1);
     border-radius: 10px;
@@ -161,6 +162,7 @@
     position: relative;
     overflow: hidden;
     min-height: 64px;
+    height: 64px;
   }
   .level-btn:hover, .level-btn:active {
     transform: scale(0.95);
@@ -191,13 +193,16 @@
     color: var(--found);
   }
   .level-stars {
+    display: -webkit-flex;
     display: flex;
-    gap: 2px;
+    -webkit-justify-content: center;
     justify-content: center;
+    -webkit-align-items: center;
     align-items: center;
     margin-top: 2px;
     color: var(--accent);
   }
+  .level-stars > * + * { margin-left: 2px; }
   .level-theme {
     font-family: 'Courier New', Courier, monospace;
     font-size: 0.5rem;
@@ -235,10 +240,10 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
     width: 100%;
     max-width: 700px;
   }
+  .game-layout > * + * { margin-top: 14px; }
 
   /* ===== GRID ===== */
   .grid-wrapper {
@@ -303,10 +308,13 @@
     margin-bottom: 10px;
   }
   .word-list {
+    display: -webkit-flex;
     display: flex;
+    -webkit-flex-wrap: wrap;
     flex-wrap: wrap;
-    gap: 8px;
+    margin: -4px;
   }
+  .word-chip { margin: 4px; }
   .word-chip {
     background: rgba(0,0,0,0.04);
     border: 1px solid rgba(0,0,0,0.08);
@@ -376,7 +384,8 @@
     line-height: 1.5;
   }
   .celebration-stars { font-size: 2rem; margin-bottom: 20px; color: var(--accent); }
-  .celebration-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .celebration-btns { display: -webkit-flex; display: flex; -webkit-justify-content: center; justify-content: center; -webkit-flex-wrap: wrap; flex-wrap: wrap; }
+  .celebration-btns > * + * { margin-left: 12px; }
 
   /* ===== CONFETTI ===== */
   .confetti-piece {
@@ -405,7 +414,7 @@
 
   /* ===== RESPONSIVE ===== */
   @media (max-width: 480px) {
-    .levels-grid { grid-template-columns: repeat(5, 1fr); gap: 7px; }
+    .levels-grid { }
     .level-btn { min-height: 54px; }
     .level-num { font-size: 1rem; }
     .cell { font-size: 0.85rem; }
@@ -418,12 +427,15 @@
 
   /* ===== TIMER & SCORE ===== */
   .game-stats {
+    display: -webkit-flex;
     display: flex;
-    gap: 14px;
+    -webkit-justify-content: center;
     justify-content: center;
     margin-bottom: 8px;
+    -webkit-flex-wrap: wrap;
     flex-wrap: wrap;
   }
+  .game-stats > * + * { margin-left: 14px; }
   .stat-chip {
     background: rgba(0,0,0,0.05);
     border-radius: 20px;
@@ -450,10 +462,12 @@
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     pointer-events: none;
     white-space: nowrap;
+    display: -webkit-flex;
     display: flex;
+    -webkit-align-items: center;
     align-items: center;
-    gap: 6px;
   }
+  #toast > * + * { margin-left: 6px; }
   .toast.show { transform: translateX(-50%) translateY(0); }
   .toast.wrong { background: #1a1a1a; }
 
