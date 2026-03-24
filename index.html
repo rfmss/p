@@ -464,6 +464,15 @@
 
   .level-check svg, .level-stars svg { display: inline-block; vertical-align: middle; }
 </style>
+<script>
+// iOS 9 / Safari 9 polyfills
+if (!Object.values) {
+  Object.values = function(o) { return Object.keys(o).map(function(k){ return o[k]; }); };
+}
+if (!Object.entries) {
+  Object.entries = function(o) { return Object.keys(o).map(function(k){ return [k, o[k]]; }); };
+}
+</script>
 </head>
 <body>
 
