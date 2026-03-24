@@ -1320,7 +1320,7 @@ function updateTimer() {
   var m = Math.floor(state.elapsedSeconds / 60);
   var s = state.elapsedSeconds % 60;
   var el = document.getElementById('stat-time');
-  if (el) el.textContent = "".concat(m, ":").concat(s.toString().padStart(2, '0'));
+  if (el) el.textContent = "".concat(m, ":").concat((s < 10 ? '0' : '') + s);
 }
 
 // ===================== GAME RENDER =====================
@@ -1572,7 +1572,7 @@ function showCompletion() {
   document.getElementById('cel-emoji').innerHTML = IC.trophy;
   document.getElementById('cel-title').textContent = 'Parabéns!';
   document.getElementById('cel-stars').innerHTML = IC.star.repeat(stars);
-  document.getElementById('cel-sub').textContent = "Voc\xEA completou o N\xEDvel ".concat(state.currentLevel, " em ").concat(m, ":").concat(s.toString().padStart(2, '0'), "!\n").concat(stars === 3 ? 'Perfeito!' : stars === 2 ? 'Muito bem!' : 'Continue assim!');
+  document.getElementById('cel-sub').textContent = "Voc\xEA completou o N\xEDvel ".concat(state.currentLevel, " em ").concat(m, ":").concat((s < 10 ? '0' : '') + s, "!\n").concat(stars === 3 ? 'Perfeito!' : stars === 2 ? 'Muito bem!' : 'Continue assim!');
   var nextBtn = document.getElementById('next-level-btn');
   if (hasNext) {
     nextBtn.style.display = '';
