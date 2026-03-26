@@ -1347,7 +1347,8 @@ function renderGrid() {
   var size = state.size;
   var cellSize = getCellSize(size);
   var fontSize = Math.max(10, Math.min(cellSize * 0.55, 18));
-  gridEl.style.width = (cellSize + 2) * size + 'px';
+  /* +14: padding:4px*2 + border:2px*2 with box-sizing:border-box — prevents word wrapping */
+  gridEl.style.width = ((cellSize + 2) * size + 14) + 'px';
   gridEl.innerHTML = '';
   for (var r = 0; r < size; r++) {
     for (var c = 0; c < size; c++) {
